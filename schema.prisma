@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedIssues Issue[] @relation("AssignedTo")
+  reportedIssues Issue[] @relation("ReportedBy")
+
+  @@map("users")
+}
+
+model Issue {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  title       String
+  description String?
+  status      IssueStatus @default(TODO)
+  priority    Priority    @default(MEDIUM)
+  type        IssueType   @default(TASK)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  assigneeId String?
+  assignee   User?   @relation("AssignedTo", fields: [assigneeId], references: [id])
+
+  reporterId String
+  reporter   User   @relation("ReportedBy", fields: [reporterId], references: [id])
+
+  @@map("issues")
+}
+
+enum IssueStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+enum Priority {
+  LOWEST
+  LOW
+  MEDIUM
+  HIGH
+  HIGHEST
+}
+
+enum IssueType {
+  BUG
+  TASK
+  STORY
+  EPIC
+  SUBTASK
+}
